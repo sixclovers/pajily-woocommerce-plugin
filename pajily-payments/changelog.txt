@@ -1,4 +1,7 @@
 *** Pajily Payments Changelog ***
 
+2025-01-22 - version 1.1.1
+* Fixed - Improved handling of invalid API keys.
+
 2024-12-15 - version 1.1.0
 * New - Initial public release

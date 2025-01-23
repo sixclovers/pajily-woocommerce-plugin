@@ -14,6 +14,8 @@
     }
 
     private function api_request($endpoint, $method = 'GET', $body = null) {
+        if ($this->public_key == null || $this->private_key == null) return false;
+
         $url = $this->api_endpoint . $endpoint;
         $ch = curl_init();
 
@@ -21,6 +23,8 @@
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
         curl_setopt($ch, CURLOPT_USERPWD, "$this->public_key:$this->private_key");
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 20); 
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
         if ($method === 'POST' && $body !== null) {
             curl_setopt($ch, CURLOPT_POST, true);

@@ -97,6 +97,10 @@ This project is licensed under GPLv3+.
 
 ## Changelog
 
+### 1.1.1
+
+* Fixed: Improved handling of invalid API keys.
+
 ### 1.1.0
 
 * New: Initial public release

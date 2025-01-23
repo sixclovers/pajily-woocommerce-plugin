@@ -4,7 +4,7 @@
  * Plugin Name:          Pajily Payments
  * Plugin URI:           https://github.com/sixclovers/pajily-woocommerce-plugin/
  * Description:          Accept cryptocurrency payments with Pajily Payments.
- * Version:              1.1.0
+ * Version:              1.1.1
  * Requires at least:    4.0
  * Requires PHP:         5.3
  * Author:               Pajily Payments
@@ -82,7 +82,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @access public
      * @var    string
      */
-    public $version = '1.1.0';
+    public $version = '1.1.1';
 
     /**
      * The Gateway URL.

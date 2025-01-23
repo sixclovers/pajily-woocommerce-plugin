@@ -103,9 +103,7 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
 
 	private function update_order_status( $order, $status ) {
 		$prev_status = $order->get_meta( '_gateway_status' );
-    echo $prev_status;
 		if ( $status !== $prev_status ) {
-      echo $status;
 			$order->update_meta_data( '_gateway_status', $status );
 
 			if ( $status === 'EXPIRED' && $order->get_status() == 'pending' ) {
@@ -302,9 +300,12 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
         'result' => 'success',
         'redirect' => $this->api_endpoint . '/payments/' . $transaction['transactionId'] . '/checkout/?type=redirect',
       );
+    } else if ($transaction != false && isset($transaction['errors'])) {
+      wc_add_notice( __( 'Payment error: ', 'pajily-payments' ) . $transaction['errors'][0]['message'], 'error' );
+      return array( 'result' => 'failure', 'redirect' => null );
     } else {
-      wc_add_notice( __( 'Payment error: ', 'woocommerce' ) . $transaction['error'], 'error' );
-      return;
+      wc_add_notice( __( 'Payment error.', 'pajily-payments' ), 'error' );
+      return array( 'result' => 'failure', 'redirect' => null );
     }
   }
 }

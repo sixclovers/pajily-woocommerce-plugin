@@ -95,6 +95,9 @@ To use this plugin with your WooCommerce store you will need:
 
 == Changelog ==
 
+= 1.1.1 =
+* Improved handling of invalid API keys.
+
 = 1.1.0 =
 * Initial public release
 
