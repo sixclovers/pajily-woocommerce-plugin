@@ -4,7 +4,7 @@
  * Plugin Name:          Pajily Payments
  * Plugin URI:           https://github.com/sixclovers/pajily-woocommerce-plugin/
  * Description:          Accept cryptocurrency payments with Pajily Payments.
- * Version:              1.1.1
+ * Version:              1.1.2
  * Requires at least:    4.0
  * Requires PHP:         5.3
  * Author:               Pajily Payments
@@ -82,7 +82,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @access public
      * @var    string
      */
-    public $version = '1.1.1';
+    public $version = '1.1.2';
 
     /**
      * The Gateway URL.
@@ -126,7 +126,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      */
      public function __clone() {
        // Cloning instances of the class is forbidden
-       _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-payment-gateway-boilerplate' ), $this->version );
+       _doing_it_wrong( __FUNCTION__, esc_html__( 'Not Allowed', 'pajily-payments' ), esc_html($this->version) );
      }
 
     /**
@@ -138,7 +138,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      */
      public function __wakeup() {
        // Unserializing instances of the class is forbidden
-       _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'woocommerce-payment-gateway-boilerplate' ), $this->version );
+       _doing_it_wrong( __FUNCTION__, esc_html__( 'Not Allowed', 'pajily-payments' ), esc_html($this->version) );
      }
 
     /**
@@ -175,7 +175,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
           }
         }
         else {
-          add_action( 'admin_notices', array( $this, 'upgrade_notice' ) );
+          add_action( 'admin_notices', array( $this, 'upgrade_notice_safe' ) );
           return false;
         }
       }
@@ -300,7 +300,8 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @return string
      */
     public function woocommerce_missing_notice() {
-      echo '<div class="error woocommerce-message wc-connect"><p>' . sprintf( __( 'Sorry, <strong>WooCommerce %s</strong> requires WooCommerce to be installed and activated first. Please install <a href="%s">WooCommerce</a> first.', $this->text_domain), $this->name, admin_url('plugin-install.php?tab=search&type=term&s=WooCommerce' ) ) . '</p></div>';
+      /* translators: 1: plugin slug 2: admin URL */
+      echo '<div class="error woocommerce-message wc-connect"><p>', esc_html( sprintf( __( 'Sorry, <strong>WooCommerce %1$s</strong> requires WooCommerce to be installed and activated first. Please install <a href="%2$s">WooCommerce</a> first.', 'pajily-payments' ), $this->name, admin_url('plugin-install.php?tab=search&type=term&s=WooCommerce' ) ) ), '</p></div>';
     }
 
     /**
@@ -309,8 +310,9 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @access public
      * @return string
      */
-    public function upgrade_notice() {
-      echo '<div class="updated woocommerce-message wc-connect"><p>' . sprintf( __( 'WooCommerce %s depends on version 2.2 and up of WooCommerce for this gateway to work! Please upgrade before activating.', 'payment-gateway-boilerplate' ), $this->name ) . '</p></div>';
+    public function upgrade_notice_safe() {
+      /* translators: 1: plugin slug */
+      echo '<div class="updated woocommerce-message wc-connect"><p>', esc_html( sprintf( __( 'WooCommerce %s depends on version 4.0 and up of WooCommerce for this gateway to work! Please upgrade before activating.', 'pajily-payments' ), $this->name ) ), '</p></div>';
     }
 
     /** Helper functions ******************************************************/
@@ -337,7 +339,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
 
     public function order_meta( $order ) {
       if ($order->get_payment_method() == $this->gateway_slug) {
-        echo '<br class="clear"/><h3>' . $this->name . '</h3><div class=""><p>Transaction Id ' . $order->get_meta('_gateway_transaction_id') . '</p></div>';
+        echo '<br class="clear"/><h3>', esc_html( $this->name ), '</h3><div><p>Transaction Id ', esc_html( $order->get_meta('_gateway_transaction_id') ), '</p></div>';
       }
     }
 

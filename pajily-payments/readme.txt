@@ -1,12 +1,13 @@
-=== Pajily Payments Payment Gateway for WooCommerce ===
-Contributors: nxkavian
+=== Pajily Payments ===
+Contributors: versalmoney
 Plugin URL: https://www.pajily.com/
-Tags: pajily, payments, woocommerce, crypto, ethereum, bitcoin
+Tags: woocommerce, payments, crypto, ethereum, bitcoin
 Requires at least: 4.0
-Requires PHP: 5.3+
+Requires PHP: 5.3
 Tested up to: 6.7.1
-Stable tag: 1.1.0
+Stable tag: 1.1.2
 License: GPLv3 or later
+Accept cryptocurrencies through Pajily Payments.
 
 == Description ==
 
@@ -94,6 +95,9 @@ To use this plugin with your WooCommerce store you will need:
 * WooCommerce plugin
 
 == Changelog ==
+
+= 1.1.2 =
+* Added improvements based on Plugin Check.
 
 = 1.1.1 =
 * Improved handling of invalid API keys.

@@ -17,15 +17,15 @@ use Pajily\API\PajilyAPI;
 
 class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
 
+  private $logger;
+  private $pajily_api;
+
   /**
    * Constructor for the gateway.
    *
    * @access public
    * @return void
    */
-
-  private $pajily_api;
-
   public function __construct() {
     $this->developServer       = 'https://dev.pajily.com';
     $this->productionDashboard = 'https://dashboard.pajily.com';
@@ -55,14 +55,13 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
 
     if( $this->debug == 'yes' ) {
       if( class_exists( 'WC_Logger' ) ) {
-        $this->log = new WC_Logger();
-      }
-      else {
-        $this->log = $woocommerce->logger();
+        $this->logger = new WC_Logger();
+      } else {
+        $this->logger = $woocommerce->logger();
       }
     }
 
-    $this->pajily_api = new PajilyAPI($this->api_endpoint, $this->public_key, $this->private_key);
+    $this->pajily_api = new PajilyAPI($this->logger, $this->api_endpoint, $this->public_key, $this->private_key);
     $this->init_form_fields();
     $this->init_settings();
 
@@ -88,8 +87,13 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, Authorization");
 
-    $order_id = $_GET['order_id'];
-    $transaction_id = $_GET['transaction_id'];
+    if (empty($_GET['order_id']) || empty($_GET['transaction_id'])) { // phpcs:ignore
+      header( 'HTTP/1.1 400 Bad Request' );
+      die();
+    }
+
+    $order_id = sanitize_key($_GET['order_id']); // phpcs:ignore
+    $transaction_id = sanitize_key($_GET['transaction_id']); // phpcs:ignore
     $status = $this->pajily_api->get_transaction_status( $transaction_id );
     $order = wc_get_order( $order_id );
 
@@ -127,23 +131,29 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
    */
   public function admin_options() {
     ?>
-    <h3><?php _e( 'Pajily Payments', 'pajily-payments' ); ?></h3>
+    <h3><?php esc_html_e( 'Pajily Payments', 'pajily-payments' ); ?></h3>
 
     <table class="form-table">
       <tr valign="top">
         <th scope="row" class="titledesc">
-          <?php echo __( 'Dashboard', 'pajily-payments' ); ?>
+          <?php esc_html_e( 'Dashboard', 'pajily-payments' ); ?>
         </th>
         <td class="forminp">
-          <a href="<?php echo $this->productionDashboard ?>" target="_blank" class="button button-primary"><?php _e( 'Production Dashboard', 'pajily-payments' ); ?></a>
-          <a href="<?php echo $this->sandboxServer ?>" target="_blank" class="button"><?php _e( 'Sandbox Dashboard', 'pajily-payments' ); ?></a>
+          <a href="<?php echo esc_url_raw($this->productionDashboard) ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Production Dashboard', 'pajily-payments' ); ?></a>
+          <a href="<?php echo esc_url_raw($this->sandboxServer) ?>" target="_blank" class="button"><?php esc_html_e( 'Sandbox Dashboard', 'pajily-payments' ); ?></a>
         </td>
       </tr>
     
       <?php $this->generate_settings_html(); ?>
     </table>
+
+    <script>
+      window.develop = '<?php echo esc_url_raw($this->develop); ?>';
+      window.developServer = '<?php echo esc_url_raw($this->developServer); ?>';
+      window.productionServer = '<?php echo esc_url_raw($this->productionServer); ?>';
+      window.sandboxServer = '<?php echo esc_url_raw($this->sandboxServer); ?>';
+    </script>
     <?php
-    echo "<script>window.develop = '{$this->develop}'; window.developServer = '{$this->developServer}'; window.productionServer = '{$this->productionServer}'; window.sandboxServer = '{$this->sandboxServer}';</script>";
     wp_enqueue_script('pajily-admin-js', plugin_dir_url(__FILE__) . '../assets/js/admin.js', array('jquery'), WC_Pajily_Payments::get_instance()->version, true);
   }
 
@@ -159,12 +169,17 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
 
     // PHP Version.
     if( version_compare( phpversion(), '5.3', '<' ) ) {
-      echo '<div class="error"><p>' . sprintf( __( 'Pajily Payments Error: Pajily Payments requires PHP 5.3 and above. You are using version %s.', 'pajily-payments' ), phpversion() ) . '</p></div>';
+      ?><div class="error"><p><?php
+      /* translators: 1: phpversion */
+      echo esc_html( sprintf( __( 'Pajily Payments Error: Pajily Payments requires PHP 5.3 and above. You are using version %s.', 'pajily-payments' ), phpversion() ) );
+      ?></p></div><?php
     }
 
     // Check required fields.
     else if( !$this->public_key || !$this->private_key ) {
-      echo '<div class="error"><p>' . __( 'Pajily Payments Error: Please enter your public and private API keys', 'pajily-payments' ) . '</p></div>';
+      ?><div class="error"><p><?php
+      esc_html_e( 'Pajily Payments Error: Please enter your public and private API keys', 'pajily-payments' );
+      ?></p></div><?php
     }
   }
 
@@ -247,6 +262,7 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
         'type'        => 'checkbox',
         'label'       => __( 'Enable logging', 'pajily-payments' ),
         'default'     => 'no',
+        /* translators: 1: log file path */
         'description' => sprintf( __( 'Log Gateway name events inside <code>%s</code>', 'pajily-payments' ), wc_get_log_file_path( $this->id ) )
       ),
     );
@@ -262,7 +278,16 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
       return;
     }
 
-    echo "<script>window.gatewayId = '{$this->id}'; window.methodTitle = '{$this->method_title}'; window.methodDescription = '{$this->method_description}'; window.paymentTitle = '{$this->title}'; window.paymentDescription = '{$this->description}'; window.paymentNextButton = '{$this->next_button}';</script>";
+    ?>
+    <script>
+      window.gatewayId = '<?php echo esc_html($this->id) ?>';
+      window.methodTitle = '<?php echo esc_html($this->method_title) ?>';
+      window.methodDescription = '<?php echo esc_html($this->method_description) ?>';
+      window.paymentTitle = '<?php echo esc_html($this->title) ?>';
+      window.paymentDescription = '<?php echo esc_html($this->description) ?>';
+      window.paymentNextButton = '<?php echo esc_html($this->next_button) ?>';
+    </script>
+    <?php
     wp_enqueue_script('pajily-js', plugin_dir_url(__FILE__) . '../assets/js/checkout.js', array('jquery'), WC_Pajily_Payments::get_instance()->version, true);
   }
 
