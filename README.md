@@ -88,7 +88,7 @@ If this is checked, these are saved within your `wp-content/uploads/wc-logs/` fo
 
 To use this plugin with your WooCommerce store you will need:
 
-* [WordPress] (tested up to 6.7.1)
+* [WordPress] (tested up to 6.7)
 * [WooCommerce] (tested up to 9.5.1)
 
 ## License
@@ -96,6 +96,10 @@ To use this plugin with your WooCommerce store you will need:
 This project is licensed under GPLv3+.
 
 ## Changelog
+
+### 1.1.3
+
+* Fixed: Added improvements based on publishing the plugin to WordPress.
 
 ### 1.1.2
 
