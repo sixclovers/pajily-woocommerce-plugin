@@ -2,18 +2,18 @@
 
 /*
  * Plugin Name:          Pajily Payments
- * Plugin URI:           https://github.com/sixclovers/pajily-woocommerce-plugin/
+ * Plugin URI:           https://github.com/sixclovers/pajily-woocommerce-plugin
  * Description:          Accept cryptocurrency payments with Pajily Payments.
- * Version:              1.1.2
+ * Version:              1.1.3
  * Requires at least:    4.0
- * Requires PHP:         5.3
+ * Requires PHP:         7.0
  * Author:               Pajily Payments
  * Author URI:           https://www.pajily.com/
  * License:              GPLv3+
  * License URI:          https://www.gnu.org/licenses/gpl-3.0.html
  * Text Domain:          pajily-payments
  * WC requires at least: 4.0.0
- * WC tested up to:      9.5.1
+ * WC tested up to:      9.6.1
  */
 
  /*
@@ -33,7 +33,7 @@
 
 if( !defined( 'ABSPATH' ) ) exit; // Exit if accessed directly.
 
-if( !class_exists( 'WC_Pajily_Payments' ) ) {
+if( !class_exists( 'PajilyPayments' ) ) {
 
   /**
    * WooCommerce Pajily Payments main class.
@@ -41,7 +41,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
    * @class   Pajily_Payments
    * @version 1.0.0
    */
-  final class WC_Pajily_Payments {
+  final class PajilyPayments {
 
     /**
      * Instance of this class.
@@ -82,7 +82,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @access public
      * @var    string
      */
-    public $version = '1.1.2';
+    public $version = '1.1.3';
 
     /**
      * The Gateway URL.
@@ -191,7 +191,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      public function action_links( $links ) {
        if( current_user_can( 'manage_woocommerce' ) ) {
          $plugin_links = array(
-           '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=wc_gateway_' . $this->gateway_slug ) . '">' . __( 'Settings', 'pajily-payments' ) . '</a>',
+           '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=checkout&section=' . $this->gateway_slug ) . '">' . __( 'Settings', 'pajily-payments' ) . '</a>',
          );
          return array_merge( $plugin_links, $links );
        }
@@ -228,7 +228,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @return void
      */
     private function includes() {
-      include_once( 'includes/class-wc-gateway-' . str_replace( '_', '-', $this->gateway_slug ) . '.php' );
+      include_once( 'includes/class-pajily-payments-gateway.php' );
     }
 
     /**
@@ -239,7 +239,7 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
      * @return array WooCommerce Pajily Payments gateway.
      */
     public function add_gateway( $methods ) {
-      $methods[] = 'WC_Gateway_' . str_replace( ' ', '_', $this->name );
+      $methods[] = 'PajilyPaymentsGateway';
       return $methods;
     }
 
@@ -345,15 +345,15 @@ if( !class_exists( 'WC_Pajily_Payments' ) ) {
 
   } // end if class
 
-  add_action( 'plugins_loaded', array( 'WC_Pajily_Payments', 'get_instance' ), 0 );
+  add_action( 'plugins_loaded', array( 'PajilyPayments', 'get_instance' ), 0 );
 
 } // end if class exists.
 
 /**
- * Returns the main instance of WC_Pajily_Payments to prevent the need to use globals.
+ * Returns the main instance of PajilyPayments to prevent the need to use globals.
  *
  * @return WooCommerce Gateway Name
  */
-function WC_Pajily_Payments() {
-	return WC_Pajily_Payments::get_instance();
+function PajilyPayments() {
+	return PajilyPayments::get_instance();
 }
