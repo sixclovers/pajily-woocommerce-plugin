@@ -1,11 +1,11 @@
 === Pajily Payments ===
-Contributors: versalmoney
+Contributors: pajilypayments
 Plugin URL: https://www.pajily.com/
 Tags: woocommerce, payments, crypto, ethereum, bitcoin
 Requires at least: 4.0
-Requires PHP: 5.3
-Tested up to: 6.7.1
-Stable tag: 1.1.2
+Requires PHP: 7.0
+Tested up to: 6.7
+Stable tag: 1.1.3
 License: GPLv3 or later
 Accept cryptocurrencies through Pajily Payments.
 
@@ -94,7 +94,18 @@ To use this plugin with your WooCommerce store you will need:
 
 * WooCommerce plugin
 
+== External services ==
+
+This plugin connects to an API to securely create a payment session. The payment session is used to redirect the user to the payment wall experience.
+
+It sends the checkout amount, checkout currency, and redirection URLs every time the user clicks on the Pay button.
+
+This service is provided by "Pajily Payments": [Terms of Service], [Privacy Policy], [DPA].
+
 == Changelog ==
+
+= 1.1.3 =
+* Added improvements based on publishing the plugin to WordPress.
 
 = 1.1.2 =
 * Added improvements based on Plugin Check.
@@ -107,3 +118,6 @@ To use this plugin with your WooCommerce store you will need:
 
 [Pajily Payments Production Dashboard]: <https://dashboard.pajily.com/>
 [Pajily Payments Sandbox Dashboard]: <https://payment-sandbox.pajily.com/>
+[Terms of Service]: <https://legal.pajily.com/terms-of-service>
+[Privacy Policy]: <https://legal.pajily.com/privacy-policy>
+[DPA]: <https://legal.pajily.com/data-processing-agreement>

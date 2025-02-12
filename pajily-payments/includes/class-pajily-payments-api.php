@@ -1,8 +1,8 @@
 <?php
 
-  namespace Pajily\API;
+  namespace PajilyPayments\API;
 
-  class PajilyAPI {
+  class PajilyPaymentsAPI {
     private $api_endpoint;
     private $logger;
     private $private_key;
@@ -70,4 +70,5 @@
       return $response['status'];
     }
   }
+
 ?>

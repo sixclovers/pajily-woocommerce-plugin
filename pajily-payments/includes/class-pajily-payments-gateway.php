@@ -5,17 +5,17 @@ if( !defined( 'ABSPATH' ) ) exit; // Exit if accessed directly.
 /**
  * WooCommerce Pajily Payments.
  *
- * @class   WC_Gateway_Pajily_Payments
+ * @class   PajilyPaymentsGateway
  * @extends WC_Payment_Gateway
  * @version 1.0.0
  * @author  Pajily Payments
  */
 
-include_once plugin_dir_path( __FILE__ ) . 'class-pajily-api.php';
+include_once plugin_dir_path( __FILE__ ) . 'class-pajily-payments-api.php';
 
-use Pajily\API\PajilyAPI;
+use PajilyPayments\API\PajilyPaymentsAPI;
 
-class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
+class PajilyPaymentsGateway extends WC_Payment_Gateway {
 
   private $logger;
   private $pajily_api;
@@ -38,13 +38,13 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
     $this->order_button_text   = __( 'Pay with Pajily Payments', 'pajily-payments' );
     $this->method_title        = __( 'Pajily Payments', 'pajily-payments' );
     $this->method_description  = __( 'Accept cryptocurrency payments with Pajily Payments.', 'pajily-payments' );
-    $this->notify_url          = WC()->api_request_url( 'WC_Gateway_Pajily_Payments' );
+    $this->notify_url          = WC()->api_request_url( 'PajilyPaymentsGateway' );
     $this->supports            = array( 'products' );
 		$this->timeout             = ( new WC_DateTime() )->sub( new DateInterval( 'P3D' ) );
 
     $this->enabled             = $this->get_option( 'enabled' );
     $this->title               = !$this->empty($this->get_option( 'title' )) ? $this->get_option( 'title' ) : __( 'Pajily Payments', 'pajily-payments' );
-    $this->description         = !$this->empty($this->get_option( 'description' )) ? $this->get_option( 'description' ) : __( 'Clicking "Proceed to Pajily" will redirect you to Pajily to complete your purchase.', 'pajily-payments' );
+    $this->description         = !$this->empty($this->get_option( 'description' )) ? $this->get_option( 'description' ) : __( 'Clicking \'Proceed to Pajily\' will redirect you to Pajily to complete your purchase.', 'pajily-payments' );
     $this->next_button         = !$this->empty($this->get_option( 'next_button' )) ? $this->get_option( 'next_button' ) : __( 'Proceed to Pajily', 'pajily-payments' );
     $this->develop             = 'no';
     $this->sandbox             = $this->get_option( 'sandbox' );
@@ -61,13 +61,17 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
       }
     }
 
-    $this->pajily_api = new PajilyAPI($this->logger, $this->api_endpoint, $this->public_key, $this->private_key);
-    $this->init_form_fields();
-    $this->init_settings();
+    $this->pajily_api = new PajilyPaymentsAPI($this->logger, $this->api_endpoint, $this->public_key, $this->private_key);
 
     if( is_admin() ) {
       add_action( 'admin_notices', array( $this, 'checks' ) );
-      add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+
+      if (isset($_SERVER['REQUEST_URI']) && strpos( esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])) , $this->id ) !== false) {
+        $this->init_form_fields();
+        $this->init_settings();
+
+        add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
+      }
     }
 
     add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
@@ -139,22 +143,19 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
           <?php esc_html_e( 'Dashboard', 'pajily-payments' ); ?>
         </th>
         <td class="forminp">
-          <a href="<?php echo esc_url_raw($this->productionDashboard) ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Production Dashboard', 'pajily-payments' ); ?></a>
-          <a href="<?php echo esc_url_raw($this->sandboxServer) ?>" target="_blank" class="button"><?php esc_html_e( 'Sandbox Dashboard', 'pajily-payments' ); ?></a>
+          <a href="<?php echo esc_url($this->productionDashboard) ?>" target="_blank" class="button button-primary"><?php esc_html_e( 'Production Dashboard', 'pajily-payments' ); ?></a>
+          <a href="<?php echo esc_url($this->sandboxServer) ?>" target="_blank" class="button"><?php esc_html_e( 'Sandbox Dashboard', 'pajily-payments' ); ?></a>
         </td>
       </tr>
     
       <?php $this->generate_settings_html(); ?>
     </table>
-
-    <script>
-      window.develop = '<?php echo esc_url_raw($this->develop); ?>';
-      window.developServer = '<?php echo esc_url_raw($this->developServer); ?>';
-      window.productionServer = '<?php echo esc_url_raw($this->productionServer); ?>';
-      window.sandboxServer = '<?php echo esc_url_raw($this->sandboxServer); ?>';
-    </script>
     <?php
-    wp_enqueue_script('pajily-admin-js', plugin_dir_url(__FILE__) . '../assets/js/admin.js', array('jquery'), WC_Pajily_Payments::get_instance()->version, true);
+    wp_enqueue_script('pajily-payments-admin', plugin_dir_url(__FILE__) . '../assets/js/admin.js', array('jquery'), PajilyPayments::get_instance()->version, true);
+    wp_add_inline_script('pajily-payments-admin', 'window.develop = "' . esc_js($this->develop) . '";', 'before');
+    wp_add_inline_script('pajily-payments-admin', 'window.developServer = "' . esc_url($this->developServer) . '";', 'before');
+    wp_add_inline_script('pajily-payments-admin', 'window.productionServer = "' . esc_url($this->productionServer) . '";', 'before');
+    wp_add_inline_script('pajily-payments-admin', 'window.sandboxServer = "' . esc_url($this->sandboxServer) . '";', 'before');
   }
 
   /**
@@ -168,10 +169,10 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
     }
 
     // PHP Version.
-    if( version_compare( phpversion(), '5.3', '<' ) ) {
+    if( version_compare( phpversion(), '7.0', '<' ) ) {
       ?><div class="error"><p><?php
       /* translators: 1: phpversion */
-      echo esc_html( sprintf( __( 'Pajily Payments Error: Pajily Payments requires PHP 5.3 and above. You are using version %s.', 'pajily-payments' ), phpversion() ) );
+      echo esc_html( sprintf( __( 'Pajily Payments Error: Pajily Payments requires PHP 7.0 and above. You are using version %s.', 'pajily-payments' ), phpversion() ) );
       ?></p></div><?php
     }
 
@@ -217,7 +218,7 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
         'title'       => __( 'Description', 'pajily-payments' ),
         'type'        => 'text',
         'description' => __( 'This controls the description which the user sees during checkout.', 'pajily-payments' ),
-        'default'     => 'Clicking "Proceed to Pajily" will redirect you to Pajily to complete your purchase.', 'pajily-payments',
+        'default'     => 'Clicking \'Proceed to Pajily\' will redirect you to Pajily to complete your purchase.', 'pajily-payments',
         'desc_tip'    => true
       ),
       'next_button' => array(
@@ -278,17 +279,13 @@ class WC_Gateway_Pajily_Payments extends WC_Payment_Gateway {
       return;
     }
 
-    ?>
-    <script>
-      window.gatewayId = '<?php echo esc_html($this->id) ?>';
-      window.methodTitle = '<?php echo esc_html($this->method_title) ?>';
-      window.methodDescription = '<?php echo esc_html($this->method_description) ?>';
-      window.paymentTitle = '<?php echo esc_html($this->title) ?>';
-      window.paymentDescription = '<?php echo esc_html($this->description) ?>';
-      window.paymentNextButton = '<?php echo esc_html($this->next_button) ?>';
-    </script>
-    <?php
-    wp_enqueue_script('pajily-js', plugin_dir_url(__FILE__) . '../assets/js/checkout.js', array('jquery'), WC_Pajily_Payments::get_instance()->version, true);
+    wp_enqueue_script('pajily-payments', plugin_dir_url(__FILE__) . '../assets/js/checkout.js', array('jquery'), PajilyPayments::get_instance()->version, true);
+    wp_add_inline_script('pajily-payments', 'window.gatewayId = "' . esc_js($this->id) . '";', 'before');
+    wp_add_inline_script('pajily-payments', 'window.methodTitle = "' . esc_js($this->method_title) . '";', 'before');
+    wp_add_inline_script('pajily-payments', 'window.methodDescription = "' . esc_js($this->method_description) . '";', 'before');
+    wp_add_inline_script('pajily-payments', 'window.paymentTitle = "' . esc_js($this->title) . '";', 'before');
+    wp_add_inline_script('pajily-payments', 'window.paymentDescription = "' . esc_js($this->description) . '";', 'before');
+    wp_add_inline_script('pajily-payments', 'window.paymentNextButton = "' . esc_js($this->next_button) . '";', 'before');
   }
 
   /**
