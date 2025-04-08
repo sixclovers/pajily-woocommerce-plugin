@@ -4,8 +4,8 @@ Plugin URL: https://www.pajily.com/
 Tags: woocommerce, payments, crypto, ethereum, bitcoin
 Requires at least: 4.0
 Requires PHP: 7.0
-Tested up to: 6.7
-Stable tag: 1.1.3
+Tested up to: 6.8
+Stable tag: 1.1.4
 License: GPLv3 or later
 Accept cryptocurrencies through Pajily Payments.
 
@@ -103,6 +103,9 @@ It sends the checkout amount, checkout currency, and redirection URLs every time
 This service is provided by "Pajily Payments": [Terms of Service], [Privacy Policy], [DPA].
 
 == Changelog ==
+
+= 1.1.4 =
+* Validated with WP 6.8 and WC 9.7.1.
 
 = 1.1.3 =
 * Added improvements based on publishing the plugin to WordPress.
